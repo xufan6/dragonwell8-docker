@@ -1,25 +1,17 @@
 FROM centos:7.6.1810
 
-ENV JAVA_HOME /usr/local/dragonwell8
-ENV PATH $JAVA_HOME/bin:$PATH
-
-ENV Jdk_Version="8.0.0-GA" \
-    Jdk_file_sha256="0ba706b8e0d9e6511e7f15b3faccde55e13f6d2f698431c75aeb2c98cfed1375"
-ENV Jdk_file_name="Alibaba_Dragonwell_"$Jdk_Version"_Linux_x64.tar.gz" \
-    Jdk_Base_Url="https://github.com/alibaba/dragonwell8/releases/download"
+ENV JAVA_PACKAGE_NAME=java-1.8.0-alibaba-dragonwell
 
 RUN set -eux; \
-    curl -v -L -o "$Jdk_file_name" "$Jdk_Base_Url"/v"$Jdk_Version"/"$Jdk_file_name" && \
-    echo -n "$Jdk_file_sha256 $Jdk_file_name"|sha256sum -c - && \
-    mkdir -p "$JAVA_HOME"; \
-    tar --extract \
-        --file "$Jdk_file_name" \
-        --directory "$JAVA_HOME" \
-        --strip-components 1 \
-        --no-same-owner \
-    ; \
-    rm -f "$Jdk_file_name"; \
-    rm -f "$JAVA_HOME"/src.zip; \
+    printf '# plus packages provided by Aliyun Linux dev team\n[plus]\nname=AliYun-2.1903 - Plus - mirrors.aliyun.com\nbaseurl=https://mirrors.aliyun.com/alinux/2.1903/plus/$basearch/\ngpgcheck\ngpgkey=https://mirrors.aliyun.com/alinux/RPM-GPG-KEY-ALIYUN' > /etc/yum.repos.d/alinux-plus.repo; \
+    yum install -y $JAVA_PACKAGE_NAME; \
+    export JAVA_HOME=$(rpm -q --scripts ${JAVA_PACKAGE_NAME}|grep -oP 'JAVA_HOME=\K([a-zA-Z0-9/\.-]*)'); \
+    export PATH=$JAVA_HOME/bin:$PATH; \
+    export JAVA_VERSION=$(rpm -q ${JAVA_PACKAGE_NAME} --qf '%{VERSION}'); \
+    rm -f $JAVA_HOME/src.zip; \
+    yum autoremove -y; \
+    yum clean all; \
+    rm -rf /var/cache/yum; \
     javac -version; \
     java -version; \
     exit 0
