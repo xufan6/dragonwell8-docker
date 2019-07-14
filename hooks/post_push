@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
-export Jdk_Version=$(docker run --rm $IMAGE_NAME sh -c 'echo $Jdk_Version')
+export JAVA_VERSION=$(docker run --rm $IMAGE_NAME sh -l -c 'echo ${JAVA_VERSION}')
 
-for i in ${Jdk_Version} ${Jdk_Version%.*} ${Jdk_Version%.*.*} ; do
+for i in ${JAVA_VERSION} ${JAVA_VERSION%.*.*} ${JAVA_VERSION%%.*} ; do
   docker tag $IMAGE_NAME $DOCKER_REPO:$i
   docker push $DOCKER_REPO:$i
 done
